@@ -776,6 +776,11 @@ status_t HWComposer::prepare() {
                     if (l.compositionType == HWC_FRAMEBUFFER) {
                         disp.hasFbComp = true;
                     }
+                    // If the composition type is BLIT, we set this to
+                    // trigger a FLIP
+                    if(l.compositionType == HWC_BLIT) {
+                        disp.hasFbComp = true;
+                    }
                     if (l.compositionType == HWC_OVERLAY) {
                         disp.hasOvComp = true;
                     }
@@ -994,6 +999,9 @@ public:
         getLayer()->blending = HWC_BLENDING_NONE;
         getLayer()->visibleRegionScreen.numRects = 0;
         getLayer()->visibleRegionScreen.rects = NULL;
+    }
+    virtual void setPerFrameDefaultState() {
+        //getLayer()->compositionType = HWC_FRAMEBUFFER;
     }
     virtual void setSkip(bool skip) {
         if (skip) {
@@ -1234,6 +1242,7 @@ void HWComposer::dump(String8& result, char* buffer, size_t SIZE) const {
                             "HWC",
                             "BACKGROUND",
                             "FB TARGET",
+                            "FB_BLIT",
                             "UNKNOWN"};
                     if (type >= NELEM(compositionTypeName))
                         type = NELEM(compositionTypeName) - 1;
