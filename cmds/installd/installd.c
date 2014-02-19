@@ -159,7 +159,7 @@ static int readx(int s, void *_buf, int count)
         r = read(s, buf + n, count - n);
         if (r < 0) {
             if (errno == EINTR) goto read_cont;
-            
+
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 pthread_cond_wait(&io_wait, &io_mutex);
                 if (write_error) {
@@ -279,6 +279,7 @@ done:
     return 0;
 
 exec_error:
+    pthread_cond_broadcast(&io_wait);
     pthread_mutex_unlock(&io_mutex);
     return -1;
 }
@@ -666,7 +667,7 @@ int main(const int argc, const char *argv[]) {
             buf[count] = 0;
             thread_parm *args = (thread_parm*) malloc(sizeof(thread_parm));
             args->s = s;
-            strncpy(args->cmd, buf, count);
+            strncpy(args->cmd, buf, count + 1);
             args->id = id;
             pthread_create(&worker_threads, &pthread_custom_attr, executeAsync, (void*) args);
         }
@@ -675,6 +676,7 @@ int main(const int argc, const char *argv[]) {
     }
 
     pthread_kill(&signal_thread, SIGKILL);
+    pthread_join(&signal_thread, NULL);
 
     return 0;
 }
