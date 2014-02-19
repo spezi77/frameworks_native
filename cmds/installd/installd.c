@@ -157,14 +157,14 @@ static int readx(int s, void *_buf, int count)
     while (n < count) {
         pthread_mutex_lock(&io_mutex);
         r = read(s, buf + n, count - n);
+        if (write_error) {
+            goto read_error;
+        }
         if (r < 0) {
             if (errno == EINTR) goto read_cont;
 
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 pthread_cond_wait(&io_wait, &io_mutex);
-                if (write_error) {
-                    goto read_error;
-                }
                 goto read_cont;
             }
             ALOGE("read error: %s\n", strerror(errno));
