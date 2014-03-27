@@ -444,7 +444,11 @@ void Layer::setAcquireFence(const sp<const DisplayDevice>& hw,
     // TODO: there is a possible optimization here: we only need to set the
     // acquire fence the first time a new buffer is acquired on EACH display.
 
-    if (layer.getCompositionType() == HWC_OVERLAY) {
+    if (layer.getCompositionType() == HWC_OVERLAY
+#ifdef QCOM_BSP
+		    || layer.getCompositionType() == HWC_BLIT
+#endif
+	    ) {
         sp<Fence> fence = mSurfaceFlingerConsumer->getCurrentFence();
         if (fence->isValid()) {
             fenceFd = fence->dup();
